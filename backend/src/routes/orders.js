@@ -58,3 +58,17 @@ router.get('/:orderId', async (req, res) => {
 });
 
 module.exports = router;
+
+// Public endpoint to fetch order (no auth required) - for checkout page
+router.get('/public/:orderId', async (req, res) => {
+  try {
+    const result = await query('SELECT id, amount, currency, status FROM orders WHERE id = $1', [req.params.orderId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND_ERROR', description: 'Order not found' } });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Get order error:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_SERVER_ERROR', description: 'Failed to fetch order' } });
+  }
+});
